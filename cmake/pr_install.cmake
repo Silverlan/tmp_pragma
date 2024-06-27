@@ -56,11 +56,26 @@ function(pr_install_targets)
         set(FILE_PATH "$<TARGET_FILE:${TARGET}>")
         string(REPLACE "\\" "/" FILE_PATH ${FILE_PATH})
         message("Adding install rule for target \"${TARGET}\" (\"${FILE_PATH}\") to \"${PA_INSTALL_DIR}\"...")
+
+        # Install the actual library file
         install(
             FILES "${FILE_PATH}"
             DESTINATION "${PA_INSTALL_DIR}"
             OPTIONAL
             COMPONENT ${PRAGMA_INSTALL_COMPONENT})
+
+        # Check if the file is a symbolic link
+        get_filename_component(FILE_TYPE ${FILE_PATH} TYPE)
+        if(FILE_TYPE STREQUAL "SYMLINK")
+            file(READLINK ${FILE_PATH} LINK_TARGET)
+            string(REPLACE "\\" "/" LINK_TARGET ${LINK_TARGET})
+            message("Adding install rule for symlink target \"${TARGET}\" (\"${LINK_TARGET}\") to \"${PA_INSTALL_DIR}\"...")
+            install(
+                FILES "${LINK_TARGET}"
+                DESTINATION "${PA_INSTALL_DIR}"
+                OPTIONAL
+                COMPONENT ${PRAGMA_INSTALL_COMPONENT})
+        endif()
     endforeach()
 endfunction(pr_install_targets)
 
