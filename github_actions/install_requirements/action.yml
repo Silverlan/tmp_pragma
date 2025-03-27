@@ -70,20 +70,6 @@ runs:
       run: |
         df -h
 
-    - name: Maximize build space
-      if: runner.os == 'Linux'
-      uses: easimon/maximize-build-space@master
-      with:
-        root-reserve-mb: 512
-        swap-size-mb: 1024
-        remove-dotnet: 'true'
-  
-    - name: Print Maximized Build Space
-      shell: bash
-      if: runner.os == 'Linux'
-      run: |
-        df -h
-        
     - name: Free Disk Space
       if: runner.os == 'Linux'
       uses: jlumbroso/free-disk-space@main
@@ -95,6 +81,20 @@ runs:
         large-packages: true
         docker-images: true
         swap-storage: true
+  
+    - name: Print Maximized Build Space
+      shell: bash
+      if: runner.os == 'Linux'
+      run: |
+        df -h
+
+    - name: Maximize build space
+      if: runner.os == 'Linux'
+      uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: 512
+        swap-size-mb: 1024
+        remove-dotnet: 'true'
   
     - name: Print freed Disk Space
       shell: bash
