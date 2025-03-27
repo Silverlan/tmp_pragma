@@ -72,4 +72,16 @@ runs:
         swap-size-mb: 1024
         remove-dotnet: 'true'
         
+    - name: Free Disk Space
+      if: runner.os == 'Linux'
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
     - uses: Silverlan/common_actions/action_end@main
