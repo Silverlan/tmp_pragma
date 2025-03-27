@@ -35,7 +35,7 @@ jobs:
             name: "Windows x64 MSVC"
     steps:
       - name: Setup Pragma
-        uses: Silverlan/pragma/github_actions/setup@main
+        uses: Silverlan/tmp_pragma/github_actions/setup@main
         with:
           clone_url: "https://github.com/${{ github.repository }}.git"
 
