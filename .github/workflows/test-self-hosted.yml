@@ -1,0 +1,29 @@
+name: Self Hosted Test
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions:
+      actions: write
+      contents: write
+      issues: read
+      pull-requests: read
+
+    name: Self Hosted
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: ubuntu-latest
+            name: "Linux (Clang)"
+    steps:
+      - name: Print Test
+        shell: bash
+        run: |
+          echo "Hello World"
