@@ -64,3 +64,9 @@ jobs:
           name: pragma-lin64
           path: ${{ steps.build-pragma.outputs.install-dir }}
           retention-days: 1
+
+      - name: Cleanup
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          rm -rf ${{ github.workspace }}/*
