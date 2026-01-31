@@ -16,7 +16,7 @@ jobs:
       pull-requests: read
 
     name: Self Hosted
-    runs-on: self-hostedaaa
+    runs-on: arch
     strategy:
       fail-fast: false
       matrix:
