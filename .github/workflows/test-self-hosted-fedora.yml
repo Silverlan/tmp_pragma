@@ -21,6 +21,12 @@ jobs:
         config:
           - name: "Linux (Clang)"
     steps:
+      - name: Install packages
+        shell: bash
+        run: |
+          sudo dnf install python3
+          sudo dnf install python3-pip
+
       - name: Setup Pragma
         uses: Silverlan/tmp_pragma/github_actions/setup@main
         with:
