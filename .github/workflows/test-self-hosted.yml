@@ -17,7 +17,7 @@ jobs:
       pull-requests: read
 
     name: Self Hosted
-    runs-on: arch
+    runs-on: fedora
     strategy:
       fail-fast: false
       matrix:
