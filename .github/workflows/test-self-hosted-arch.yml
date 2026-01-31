@@ -1,4 +1,4 @@
-name: Self Hosted Test
+name: Self Hosted Test (Arch)
 on:
   push:
     branches: [ main ]
@@ -6,7 +6,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-
+concurrency:
+  group: global-ci-serial
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -16,7 +18,7 @@ jobs:
       issues: read
       pull-requests: read
 
-    name: Self Hosted
+    name: Self Hosted (Arch)
     runs-on: arch
     strategy:
       fail-fast: false

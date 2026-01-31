@@ -1,0 +1,35 @@
+name: Self Hosted Test (Fedora)
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: global-ci-serial
+  cancel-in-progress: false
+
+jobs:
+  build:
+    permissions:
+      actions: write
+      contents: write
+      issues: read
+      pull-requests: read
+
+    name: Self Hosted (Fedora)
+    runs-on: fedora
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: ubuntu-latest
+            name: "Linux (Clang)"
+    steps:
+      - name: Print Test
+        shell: bash
+        run: |
+          echo "Hello World"
+          . /etc/os-release
+          echo "$NAME"
