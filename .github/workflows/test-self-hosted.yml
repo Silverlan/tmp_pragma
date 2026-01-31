@@ -28,3 +28,5 @@ jobs:
         shell: bash
         run: |
           echo "Hello World"
+          . /etc/os-release
+          echo "$NAME"
