@@ -24,9 +24,7 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
-          sudo pacman -S --noconfirm python
-          sudo pacman -S --noconfirm python-pip
-          sudo pacman -S --noconfirm git
+          sudo pacman -Sy --noconfirm python python-pip git
 
       - name: Setup Pragma
         uses: Silverlan/tmp_pragma/github_actions/setup@main

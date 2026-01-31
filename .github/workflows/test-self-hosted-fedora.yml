@@ -24,10 +24,7 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
-          sudo dnf install -y python3
-          sudo dnf install -y python3-pip
-          sudo dnf install -y git
-
+          sudo dnf install -y python3 python3-pip git python-unversioned-command
 
       - name: Setup Pragma
         uses: Silverlan/tmp_pragma/github_actions/setup@main
