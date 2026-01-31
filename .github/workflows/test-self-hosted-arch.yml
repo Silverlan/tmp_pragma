@@ -24,8 +24,8 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
-          sudo pacman -Sy --noconfirm archlinux-keyring
-          sudo pacman -Sy --noconfirm python python-pip git
+          sudo pacman -Syu --noconfirm archlinux-keyring
+          sudo pacman -Syu --noconfirm python python-pip git
 
       - name: Setup Pragma
         uses: Silverlan/tmp_pragma/github_actions/setup@main
