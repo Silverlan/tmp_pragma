@@ -28,6 +28,7 @@ runs:
         with_cuda: ${{ inputs.with_cuda }}
       
     - name: Clear Disk Space
+      if: ${{ !contains(runner.labels, 'self-hosted') }}
       uses: Silverlan/common_actions/clear_disk_space@main
 
     - name: Download Pragma
