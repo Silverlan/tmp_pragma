@@ -1,0 +1,30 @@
+name: "Build"
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  call-build-ubuntu:
+    concurrency:
+      group: check-build-ubuntu-${{ github.ref }}
+      cancel-in-progress: true
+
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      os: ubuntu-latest
+      branch: main
+    secrets:
+      PRAGMA_TESTS_IMPORT_TOKEN: ${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}
+
+  call-build-fedora:
+    concurrency:
+      group: check-build-fedora-${{ github.ref }}
+      cancel-in-progress: true
+
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      os: fedora
+      branch: main
+    secrets:
+      PRAGMA_TESTS_IMPORT_TOKEN: ${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}

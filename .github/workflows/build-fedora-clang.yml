@@ -1,7 +1,7 @@
 name: "[Fedora] Build (Clang)"
 on:
   push:
-    branches: [ main ]
+#    branches: [ main ]
 
 concurrency:
   group: check-build-self-hosted
