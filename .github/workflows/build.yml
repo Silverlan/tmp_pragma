@@ -17,6 +17,18 @@ jobs:
     secrets:
       PRAGMA_TESTS_IMPORT_TOKEN: ${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}
 
+  call-build-windows:
+    concurrency:
+      group: check-build-windows-${{ github.ref }}
+      cancel-in-progress: true
+
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      os: windows-latest
+      branch: main
+    secrets:
+      PRAGMA_TESTS_IMPORT_TOKEN: ${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}
+
   call-build-fedora:
     concurrency:
       group: check-build-fedora-${{ github.ref }}

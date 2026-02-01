@@ -1,9 +1,9 @@
 name: "[Ubuntu] Build and Release (Clang)"
 on:
   push:
-#    branches: [ main ]
+    branches: [ mainX ]
   pull_request:
-#    branches: [ main ]
+    branches: [ mainX ]
   workflow_dispatch:
 
 concurrency:
