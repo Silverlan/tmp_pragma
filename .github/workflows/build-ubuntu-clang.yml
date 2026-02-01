@@ -9,8 +9,8 @@ on:
 #      - main
 
 concurrency:
-  group: check-build-self-hosted
-  cancel-in-progress: false
+  group: check-build-lin-clang-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   call-build:
