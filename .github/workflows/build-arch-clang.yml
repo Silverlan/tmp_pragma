@@ -4,7 +4,7 @@ on:
     branches: [ main ]
 
 concurrency:
-  group: check-build-self-hosted-x
+  group: check-build-self-hosted
   cancel-in-progress: false
 
 jobs:
