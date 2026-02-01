@@ -497,7 +497,7 @@ if platform == "linux":
 					"git-lfs"
 				]
 
-			commands.append("dnf install " +" ".join(packages))
+			commands.append("dnf install -y " +" ".join(packages))
 		elif(prefer_pacman()): # Arch / pacman
 			packages = [
 				"cmake",

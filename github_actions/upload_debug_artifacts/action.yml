@@ -24,7 +24,13 @@ runs:
           # Install tree command
           choco install tree
         else
-          sudo apt install tree
+          if command -v dnf >/dev/null 2>&1; then
+            sudo dnf install -y tree
+          elif command -v pacman >/dev/null 2>&1; then
+            sudo pacman -S --noconfirm tree
+          else
+            sudo apt-get update && sudo apt-get install -y tree
+          fi
         fi
           
         curDir=$(pwd)
