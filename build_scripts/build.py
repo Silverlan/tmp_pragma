@@ -478,14 +478,10 @@ if platform == "linux":
 
 				# Required for Vulkan
 				packages += [
-					"xcb",
 					"libxcb",
 					"xorg-setxkbmap",
 					"libxkbcommon-x11"
 				]
-
-				# GLFW
-				packages.append("xorg-dev")
 
 				# cycles and OIDN
 				packages.append("git-lfs")
