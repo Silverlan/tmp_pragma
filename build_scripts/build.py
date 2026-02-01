@@ -447,7 +447,9 @@ if platform == "linux":
 			# Assuming arch-based system
 			packages = [
 				"cmake",
-				"ninja"
+				"ninja",
+				"gcc",
+				"g++"
 			]
 
 			if build_all:
