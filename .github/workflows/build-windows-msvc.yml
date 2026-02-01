@@ -1,4 +1,4 @@
-name: Check Windows Build (MSVC)
+name: "[Windows] Build (MSVC)"
 # Note: Building with MSVC will hit the GitHub runner time limit for workflow jobs, due to long build times. This is likely due to MSVC compiler bugs with C++20 modules.
 # Once these issues have been resolved, this should be changed to on: push.
 on:

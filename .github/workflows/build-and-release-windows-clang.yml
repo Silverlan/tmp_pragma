@@ -1,4 +1,4 @@
-name: Build and Release Windows (Clang)
+name: "[Windows] Build and Release (Clang)"
 on:
   push:
     branches: [ main ]

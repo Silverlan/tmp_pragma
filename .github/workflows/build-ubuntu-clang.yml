@@ -1,4 +1,4 @@
-name: Check Linux Build (Clang)
+name: "[Ubuntu] Build (Clang)"
 on:
   push:
     branches-ignore:

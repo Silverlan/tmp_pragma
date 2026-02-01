@@ -1,4 +1,4 @@
-name: "[Fedora] Check Linux (Clang)"
+name: "[Arch] Build (Clang)"
 on:
   push:
     branches: [ main ]
@@ -14,17 +14,26 @@ env:
 jobs:
   build:
     name: Build - ${{ matrix.config.name }}
-    runs-on: fedora
+    runs-on: arch
     strategy:
       fail-fast: false
       matrix:
         config:
-          - name: "Linux (Clang)"
+          - os: arch
+            name: "Linux (Clang)"
     steps:
       - name: Install packages
         shell: bash
         run: |
-          sudo dnf install -y python3 python3-pip git python-unversioned-command
+          sudo pacman-key --init
+          sudo pacman-key --populate archlinux
+          sudo pacman -Sy --noconfirm archlinux-keyring
+          sudo pacman -Su --noconfirm
+
+          sudo pacman -S --noconfirm python python-pip git
+
+          #sudo pacman -Syu --noconfirm archlinux-keyring
+          #sudo pacman -Syu --noconfirm python python-pip git
 
       - name: Setup Pragma
         uses: Silverlan/tmp_pragma/github_actions/setup@main

@@ -1,4 +1,4 @@
-name: Check Linux Build (GCC)
+name: "[Ubuntu] Build (GCC)"
 # Note: Due to ongoing GCC compiler errors with C++20 modules, this workflow will likely fail. Once the compiler errors have been resolved, this should be changed to on: push.
 on:
   workflow_dispatch:

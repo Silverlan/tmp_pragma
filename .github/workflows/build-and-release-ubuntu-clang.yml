@@ -1,4 +1,4 @@
-name: Build and Release Linux (Clang)
+name: "[Ubuntu] Build and Release (Clang)"
 on:
   push:
     branches: [ main ]
