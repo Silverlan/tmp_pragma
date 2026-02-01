@@ -592,7 +592,7 @@ if platform == "linux":
 		print_msg("Installing system packages...")
 		for cmd in packages:
 			print_msg("Running " +cmd +"...")
-			subprocess.run(["sudo"] +cmd.split() +["-y"],check=True)
+			subprocess.run(["sudo"] +cmd.split(),check=True)
 
 def copy_preserving_symlink(src: Path, dst_dir: Path):
     dst_dir.mkdir(parents=True, exist_ok=True)

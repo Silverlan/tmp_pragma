@@ -460,7 +460,7 @@ if platform == "linux":
 				# vcpkg
 				packages += ["base-devel git curl zip unzip tar cmake ninja"]
 
-			commands.append("pacman -S " +" ".join(packages))
+			commands.append("pacman -S --noconfirm " +" ".join(packages))
 		else:
 			# Assuming apt-based system
 			packages = [
@@ -559,7 +559,7 @@ if platform == "linux":
 					"pkg-config",
 					"gperf"
 				]
-			commands.append("apt install " +" ".join(packages))
+			commands.append("apt install -y " +" ".join(packages))
 		install_system_packages(commands, no_confirm)
 
 module_list = []
