@@ -452,6 +452,11 @@ if platform == "linux":
 				"freetype2"
 			]
 
+			# glfw
+			packages += [
+				"wayland"
+			]
+
 			if build_all:
 				# libdecor
 				packages.append("meson")
