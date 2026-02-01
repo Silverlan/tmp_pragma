@@ -448,7 +448,8 @@ if platform == "linux":
 			packages = [
 				"cmake",
 				"ninja",
-				"base-devel"
+				"base-devel",
+				"freetype2"
 			]
 
 			if build_all:
