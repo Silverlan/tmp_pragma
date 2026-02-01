@@ -454,18 +454,83 @@ if platform == "linux":
 
 			# glfw
 			packages += [
-				"wayland"
+				"wayland",
+				"libx11",
+				"libxkbcommon",
+				"libxrandr",
+				"libxinerama",
+				"libxcursor",
+				"libxi",
+				"pkgconf"
 			]
 
-			if build_all:
-				# libdecor
-				packages.append("meson")
+			# anvil
+			packages.append("xcb-util-keysyms")
 
-				# cycles
+			# pr_curl
+			# we'll only need this if we're building with pr_curl,
+			# so this condition should match the one in cmake/fetch_modules.cmake
+			if with_pfm and (with_core_pfm_modules or with_all_pfm_modules):
+				packages.append("openssl")
+
+			if build_all:
+				packages.append("patchelf")
+
+				# Required for Vulkan
+				packages += [
+					"xcb",
+					"libxcb",
+					"xorg-setxkbmap",
+					"libxkbcommon-x11"
+				]
+
+				# GLFW
+				packages.append("xorg-dev")
+
+				# cycles and OIDN
 				packages.append("git-lfs")
 
 				# vcpkg
 				packages += ["base-devel git curl zip unzip tar cmake ninja"]
+
+				# Required for Cycles
+				packages += [
+					"git-lfs",
+					"subversion",
+					"meson" # epoxy
+				]
+
+				# curl
+				packages += [
+					"openssl",
+					"curl",
+					"zip",
+					"unzip",
+					"tar"
+				]
+
+				# install freetype for linking. X server frontends (Gnome, KDE etc) already include it somewhere down the line. Also install pkg-config for easy export of flags.
+				packages += [
+					"pkgconf",
+					"freetype2"
+				]
+
+				# libdecor (required for Wayland)
+				packages += [
+					"meson",
+					"wayland-protocols",
+					"dbus",
+					"gtk3"
+				]
+
+				# Required for libsdbus-c++
+				packages += [
+					"meson",
+					"libcap",
+					"systemd",
+					"pkgconf",
+					"gperf"
+				]
 
 			commands.append("pacman -S --noconfirm " +" ".join(packages))
 		else:
