@@ -448,8 +448,7 @@ if platform == "linux":
 			packages = [
 				"cmake",
 				"ninja",
-				"gcc",
-				"g++"
+				"base-devel"
 			]
 
 			if build_all:
