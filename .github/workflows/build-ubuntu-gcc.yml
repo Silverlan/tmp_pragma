@@ -12,7 +12,6 @@ jobs:
     uses: ./.github/workflows/build-reusable.yml
     with:
       os: ubuntu-latest
-      branch: main
       build-args: '--c-compiler=gcc --cxx-compiler=g++'
     secrets:
       PRAGMA_TESTS_IMPORT_TOKEN: ${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}

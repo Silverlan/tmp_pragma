@@ -4,15 +4,10 @@ on:
   workflow_call:
     inputs:
       os:
-        description: "Runner label (e.g. 'arch', 'ubuntu-latest')"
+        description: "Runner label"
         required: false
         type: string
-        default: "arch"
-      branch:
-        description: "Branch to check out / pass to setup action"
-        required: false
-        type: string
-        default: "main"
+        default: "ubuntu-latest"
       build-args:
         description: "Additional build script arguments"
         required: false
@@ -48,11 +43,24 @@ jobs:
 
     # no matrix here — the caller selects the OS via the `os` input
     steps:
+      # Make sure workspace is cleaned up (this is mostly needed for self-hosted runners, which don't clean up automatically)
+      - name: Initial Cleanup
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          rm -rf "${{ github.workspace }}"/*
+
       - name: Setup Pragma
         uses: Silverlan/tmp_pragma/github_actions/setup@main
         with:
-          branch: ${{ inputs.branch }}
+          branch: ${{ github.ref_name }}
           clone_url: "https://github.com/${{ github.repository }}.git"
+
+      # We need the latest Windows SDK
+      - uses: GuillaumeFalourd/setup-windows10-sdk-action@v2.4
+        if: runner.os == 'Windows'
+        with:
+          sdk-version: 22621
 
       - name: Build Pragma
         uses: ./pragma/github_actions/build
@@ -83,11 +91,27 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: pragma-lin64
+          name: pragma-${{ inputs.os }}
           path: ${{ steps.build-pragma.outputs.install-dir }}
+          retention-days: 3
+
+      - name: Collect PDB files
+        uses: ./pragma/github_actions/collect_pdb_files
+        if: ${{ runner.os == 'Windows' && !cancelled() }}
+        with:
+          source-directory: "${{ steps.build-pragma.outputs.build-dir }}"
+          target-directory: "${{ github.workspace }}/pdb"
+
+      - name: Upload PDB Artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ runner.os == 'Windows' && !cancelled() }}
+        with:
+          name: debug-pdb
+          path: "${{ github.workspace }}/pdb"
           retention-days: 1
 
-      - name: Cleanup
+      # Make sure workspace is cleaned up (this is mostly needed for self-hosted runners, which don't clean up automatically)
+      - name: Final Cleanup
         if: ${{ always() }}
         shell: bash
         run: |

@@ -12,7 +12,7 @@ runs:
   using: "composite"
   steps:
     - name: Serverside Tests
-      uses: Silverlan/pragma/github_actions/run_tests@main
+      uses: Silverlan/tmp_pragma/github_actions/run_tests@main
       with:
         test-scripts: |
           "tests/assets.udm"
@@ -22,7 +22,7 @@ runs:
         state: "server"
 
     - name: Base Tests
-      uses: Silverlan/pragma/github_actions/run_tests@main
+      uses: Silverlan/tmp_pragma/github_actions/run_tests@main
       with:
         test-scripts: |
           "tests/assets.udm"
@@ -31,7 +31,7 @@ runs:
         artifacts-name: "base-tests"
 
     - name: PFM Tests
-      uses: Silverlan/pragma/github_actions/run_tests@main
+      uses: Silverlan/tmp_pragma/github_actions/run_tests@main
       with:
         test-scripts: |
           "tests/pfm.udm"
@@ -55,7 +55,7 @@ runs:
         rm -rf pragma_tests_import
 
     - name: Import Tests
-      uses: Silverlan/pragma/github_actions/run_tests@main
+      uses: Silverlan/tmp_pragma/github_actions/run_tests@main
       if: ${{ inputs.import-tests-token }} != ""
       with:
         test-scripts: |

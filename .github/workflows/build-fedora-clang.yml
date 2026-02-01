@@ -1,7 +1,7 @@
 name: "[Fedora] Build (Clang)"
 on:
   push:
-    branches: [ mainX ]
+    branches: [ main ]
 
 concurrency:
   group: check-build-self-hosted
@@ -12,6 +12,5 @@ jobs:
     uses: ./.github/workflows/build-reusable.yml
     with:
       os: fedora
-      branch: main
     secrets:
       PRAGMA_TESTS_IMPORT_TOKEN: ${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}

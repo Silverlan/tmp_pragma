@@ -78,7 +78,14 @@ runs:
       run: |
         # Set up xvfb to avoid segfault issues when running chromium in CLI mode
         # TODO: It would be better if we could do this within Pragma somehow.
-        sudo apt install xvfb
+        if command -v dnf >/dev/null 2>&1; then
+          sudo dnf install -y xorg-x11-server-Xvfb
+        elif command -v pacman >/dev/null 2>&1; then
+          sudo pacman -S --noconfirm xorg-server-xvfb
+        else
+          sudo apt install -y xvfb
+        fi
+
         nohup Xvfb :99 -screen 0 1280x720x24 >/tmp/xvfb.log 2>&1 & echo $! > /tmp/xvfb.pid
         echo "DISPLAY=:99" >> $GITHUB_ENV
         # Wait for Xvfb
