@@ -73,7 +73,7 @@ jobs:
         timeout-minutes: 60
         with:
           working-directory: "${{ steps.build-pragma.outputs.install-dir }}"
-          import-tests-token: ${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}
+          import-tests-token: "${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}"
 
       - name: Analyze Disk Space
         if: failure()

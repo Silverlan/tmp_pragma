@@ -30,7 +30,7 @@ jobs:
       uses: Silverlan/pragma/github_actions/run_common_tests@main
       timeout-minutes: 60
       with:
-        import-tests-token: ${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}
+        import-tests-token: "${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}"
 
     - name: Set Failure Workflow Status
       if: failure()
