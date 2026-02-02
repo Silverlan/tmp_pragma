@@ -9,3 +9,12 @@ on:
 concurrency:
   group: build-and-release-win-clang-${{ github.ref }}
   cancel-in-progress: true
+
+jobs:
+  call-build:
+    uses: ./.github/workflows/build-and-release-reusable.yml
+    with:
+      os: windows-latest
+    secrets:
+      PRAGMA_TESTS_IMPORT_TOKEN: ${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}
+

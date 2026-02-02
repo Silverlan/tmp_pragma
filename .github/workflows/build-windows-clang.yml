@@ -1,4 +1,4 @@
-name: "[Ubuntu] Build (Clang)"
+name: "[Windows] Build (Clang)"
 on:
   push:
     branches: [ main ]
