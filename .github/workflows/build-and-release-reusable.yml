@@ -102,7 +102,13 @@ jobs:
         shell: bash
         run:   |
           curDate=$(date -u '+%Y-%m-%d %H:%M:%S %Z')
-          printf "This is an auto-generated pre-release, built from the latest version of the source code.\nIt includes all files necessary to run Pragma, as well as the latest version of the Pragma Filmmaker, however functionality and stability are **not** guaranteed.\n\nLatest release date: $curDate" > tag_text.txt
+          tag="nightly"
+
+          win_installer_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$tag/pragma_setup.exe"
+          win_archive_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$tag/pragma-windows-x64-clang.zip"
+          lin_archive_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$tag/pragma-linux-x64-clang.tar.gz"
+
+          printf "* Windows x64: [installer]($win_installer_url), [archive]($win_archive_url)\n* Linux x64: [archive]($lin_archive_url)\nThis is an auto-generated pre-release, built from the latest version of the source code.\nIt includes all files necessary to run Pragma, as well as the latest version of the Pragma Filmmaker, however functionality and stability are **not** guaranteed.\n\nLatest release date: $curDate" > tag_text.txt
 
       - name: Update nightly tag description
         uses: softprops/action-gh-release@v0.1.15

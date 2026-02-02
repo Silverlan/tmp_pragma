@@ -1,0 +1,16 @@
+name: "[Ubuntu 25] Build (Clang)"
+on:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: check-build-self-hosted
+  cancel-in-progress: false
+
+jobs:
+  call-build:
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      os: ubuntu-25
+    secrets:
+      PRAGMA_TESTS_IMPORT_TOKEN: ${{ secrets.PRAGMA_TESTS_IMPORT_TOKEN }}
