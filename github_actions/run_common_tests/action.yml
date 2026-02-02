@@ -43,7 +43,7 @@ runs:
       if: ${{ inputs.import-tests-token }} != ""
       with:
         repository: Silverlan/pragma_tests_import
-        token: ${{ inputs.import-tests-token }}
+        token: "${{ inputs.import-tests-token }}"
         path: "pragma_tests_import"
         ref: "226f5978a0cd3962aa4133dc1eee9e0c044dfee9"
 

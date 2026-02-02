@@ -111,8 +111,8 @@ jobs:
           retention-days: 1
 
       # Make sure workspace is cleaned up (this is mostly needed for self-hosted runners, which don't clean up automatically)
-      - name: Final Cleanup
-        if: ${{ always() }}
-        shell: bash
-        run: |
-          rm -rf "${{ github.workspace }}"/*
+      #- name: Final Cleanup
+      #  if: ${{ always() }}
+      #  shell: bash
+      #  run: |
+      #    rm -rf "${{ github.workspace }}"/*

@@ -1,0 +1,254 @@
+name: "Build and Release (Clang) - reusable"
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: "Runner label"
+        required: false
+        type: string
+        default: "ubuntu-latest"
+    secrets:
+      PRAGMA_TESTS_IMPORT_TOKEN:
+        required: true
+    outputs:
+      install-dir:
+        description: "Path to installed runtime"
+        value: ${{ jobs.build.outputs.install-dir }}
+      build-dir:
+        description: "Path to build directory"
+        value: ${{ jobs.build.outputs.build-dir }}
+      deps-dir:
+        description: "Path to deps directory"
+        value: ${{ jobs.build.outputs.deps-dir }}
+
+permissions:
+  contents: write
+
+env:
+  # See https://github.com/git-lfs/git-lfs/issues/5749
+  GIT_CLONE_PROTECTION_ACTIVE: 'false'
+
+jobs:
+  build:
+    permissions:
+      actions: write
+      contents: write
+      issues: read
+      pull-requests: read
+
+    name: Build and Release - ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    outputs:
+      install-dir: ${{ steps.build-pragma.outputs.install-dir }}
+      build-dir: ${{ steps.build-pragma.outputs.build-dir }}
+      deps-dir: ${{ steps.build-pragma.outputs.deps-dir }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: ${{ inputs.os }}
+            name: "${{ inputs.os }} (Clang)"
+    steps:
+      - name: Setup Pragma
+        uses: Silverlan/pragma/github_actions/setup@develop
+        with:
+          clone_url: "https://github.com/${{ github.repository }}.git"
+
+      # We need the latest Windows SDK
+      - uses: GuillaumeFalourd/setup-windows10-sdk-action@v2.4
+        if: runner.os == 'Windows'
+        with:
+          sdk-version: 22621
+
+      - name: Build Pragma
+        uses: ./pragma/github_actions/build
+        id: build-pragma
+        with:
+          build-args: "--with-pfm --with-all-pfm-modules --with-vr --with-networking --with-lua-debugger=0 --with-swiftshader --toolset=clang"
+
+      - name: Create Release Archive
+        shell: bash
+        id: release-archive
+        run: |
+          curDir="$PWD"
+          # Add info file
+          cd "${{ steps.build-pragma.outputs.install-dir }}"
+          echo -e "ref: $GITHUB_REF \ncommit: $GITHUB_SHA\nbuild: $(date +"%Y-%m-%dT%H:%M:%SZ")" \
+          > ./git_info.txt
+
+          # Delete git and install cache folders
+          find . -name ".git*" -exec rm -R {} \; 2>/dev/null || true
+          find . -name ".install_cache*" -exec rm -R {} \; 2>/dev/null || true
+
+          # Enable experimental updates
+          cd cfg
+          echo "pfm_enable_experimental_updates \"1\"" >> client.cfg
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            cd "$curDir"
+            7z a pragma-windows-x64-clang.zip "${{ steps.build-pragma.outputs.install-dir }}/**"
+
+            echo "archive_name=pragma-windows-x64-clang.zip" >> $GITHUB_OUTPUT
+          else
+            cd ..
+            tar -czvf pragma-linux-x64-clang.tar.gz *
+            mv "${{ steps.build-pragma.outputs.install-dir }}/pragma-linux-x64-clang.tar.gz" "$curDir/"
+
+            echo "archive_name=pragma-linux-x64-clang.tar.gz" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate nightly tag description
+        shell: bash
+        run:   |
+          curDate=$(date -u '+%Y-%m-%d %H:%M:%S %Z')
+          printf "This is an auto-generated pre-release, built from the latest version of the source code.\nIt includes all files necessary to run Pragma, as well as the latest version of the Pragma Filmmaker, however functionality and stability are **not** guaranteed.\n\nLatest release date: $curDate" > tag_text.txt
+
+      - name: Update nightly tag description
+        uses: softprops/action-gh-release@v0.1.15
+        with:
+          body_path: tag_text.txt
+          tag_name: nightly
+          prerelease: true
+
+      - name: Update nightly release
+        uses: pyTooling/Actions/releaser/composite@v4.2.2
+        with:
+          tag: nightly
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: "${{ steps.release-archive.outputs.archive_name }}"
+          
+      - name: Collect PDB files
+        if: runner.os == 'Windows'
+        uses: ./pragma/github_actions/collect_pdb_files
+        with:
+          source-directory: "${{ steps.build-pragma.outputs.build-dir }}"
+          target-directory: "${{ github.workspace }}/pdb"
+
+      - name: Create PDB Archive
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          curDir="$PWD"
+          # 7z expects a standard windows path
+          winPath=$(echo "$curDir" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
+          7z a debug-pdb-windows-x64-clang.zip "$winPath/pdb/**"
+
+      - name: Update PDB release
+        if: runner.os == 'Windows'
+        uses: pyTooling/Actions/releaser/composite@v4.2.2
+        with:
+          tag: nightly
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: "debug-pdb-windows-x64-clang.zip"
+
+      - name: Generate Installer
+        if: runner.os == 'Windows'
+        uses: ./pragma/github_actions/generate_installer
+        with:
+          version: "Nightly"
+          install-directory: "${{ steps.build-pragma.outputs.install-dir }}"
+          deps-directory: "c:/pragma/deps"
+
+      - name: Publish Installer
+        if: runner.os == 'Windows'
+        uses: pyTooling/Actions/releaser/composite@v4.2.2
+        with:
+          tag: "nightly"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: "c:/pragma/deps/pragma_installer/pragma_setup.exe"
+
+      - name: Get OS Name
+        shell: bash
+        id: get-os-name
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "os_name=windows" >> $GITHUB_OUTPUT
+          else
+            echo "os_name=ubuntu" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Tests
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: run-tests.yml
+          inputs: '{ "os": "${{ steps.get-os-name.outputs.os_name }}" }'
+
+      - name: Generate File Lists (Windows)
+        shell: bash
+        if: ${{ always() && runner.os == 'Windows' }}
+        run: |
+          # Install tree command
+          choco install tree
+          
+          curDir=$(pwd)
+
+          if [ -d "c:/pragma/build" ]; then
+            cd c:/pragma/build
+            tree --dirsfirst > "$curDir/files_pragma_build.txt"
+            cd "$curDir"
+          fi
+          if [ -d "c:/pragma/deps" ]; then
+            cd c:/pragma/deps
+            tree --dirsfirst > "$curDir/files_pragma_deps.txt"
+            cd "$curDir"
+          fi
+          if [ -d "c:/pragma/build/install" ]; then
+            cd c:/pragma/build/install
+            tree --dirsfirst > "$curDir/files_pragma_install.txt"
+            cd "$curDir"
+          fi
+
+          mkdir artifacts
+          cp -u "c:/pragma/build/CMakeCache.txt" artifacts/
+          cp -u "files_pragma_build.txt" artifacts/
+          cp -u "files_pragma_deps.txt" artifacts/
+          cp -u "files_pragma_install.txt" artifacts/
+
+      - name: Generate File Lists (Linux)
+        shell: bash
+        if: ${{ always() && runner.os == 'Linux' }}
+        run: |
+          sudo apt install tree
+          curDir=$(pwd)
+
+          if [ -d "pragma/build" ]; then
+            cd pragma/build
+            sudo tree --dirsfirst > "$curDir/files_pragma_build.txt"
+            cd "$curDir"
+          fi
+          if [ -d "pragma/deps" ]; then
+            cd pragma/deps
+            sudo tree --dirsfirst > "$curDir/files_pragma_deps.txt"
+            cd "$curDir"
+          fi
+          if [ -d "pragma/build/install" ]; then
+            cd pragma/build/install
+            sudo tree --dirsfirst > "$curDir/files_pragma_install.txt"
+            cd "$curDir"
+          fi
+
+          mkdir artifacts
+          cp -u "pragma/build/CMakeCache.txt" artifacts/
+          cp -u "files_pragma_build.txt" artifacts/
+          cp -u "files_pragma_deps.txt" artifacts/
+          cp -u "files_pragma_install.txt" artifacts/
+
+      - name: Discord Notifcation
+        uses: benc-uk/workflow-dispatch@v1
+        if: ${{ runner.os == 'Windows' && github.repository == 'Silverlan/pragma' }}
+        with:
+          workflow: discord-notification.yml
+          inputs: '{ "webhook": "${{ secrets.PRAGMA_RELEASE_DISCORD_WEBHOOK }}", "message": "A new nightly pre-release build has been generated! It is available for download here:\n<https://github.com/Silverlan/pragma/releases/tag/nightly>\n\nThis is NOT a stable release, use with caution! Only use this version for testing!" }'
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Artifacts
+          overwrite: true
+          path: "artifacts"
+
+      - name: Handle Error
+        uses: Silverlan/common_actions/action_handle_error@main
+        if: failure()
