@@ -49,7 +49,6 @@ jobs:
         shell: bash
         run: |
           rm -rf "${{ github.workspace }}"/*
-          sudo pacman -Syu --noconfirm python-pip
 
       - name: Setup Pragma
         uses: Silverlan/tmp_pragma/github_actions/setup@main
