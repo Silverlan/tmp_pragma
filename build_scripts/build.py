@@ -51,6 +51,7 @@ parser.add_argument("--skip-repository-updates", type=str2bool, nargs='?', const
 if platform == "linux":
 	parser.add_argument("--no-sudo", type=str2bool, nargs='?', const=True, default=False, help="Will not run sudo commands. System packages will have to be installed manually.")
 	parser.add_argument("--no-confirm", type=str2bool, nargs='?', const=True, default=False, help="Disable any interaction with user (suitable for automated run).")
+	parser.add_argument("--no-cache", type=str2bool, nargs='?', const=True, default=False, help="Use nocache to disable cache for cache-heavy build operations.")
 	parser.add_argument("--debug", type=str2bool, nargs='?', const=True, default=False, help="Enable debug assertions and disable code optimizations.")
 	parser.add_argument('--toolset', help='The toolset to use. Supported toolsets: clang', default=defaultToolset) # gcc currently not supported
 else:
@@ -96,6 +97,7 @@ if platform == "linux":
 	cxx_compiler = args["cxx_compiler"]
 	no_sudo = args["no_sudo"]
 	no_confirm = args["no_confirm"]
+	no_cache = args["no_cache"]
 	with_debug = args["debug"]
 toolset = args["toolset"]
 generator = args["generator"]
@@ -336,6 +338,10 @@ elif platform == "linux" and (c_compiler == "clang-22" or c_compiler == "clang++
 		cxx_compiler = str(clang_staging_path / "bin/clang++")
 	print_msg("Setting c_compiler override to '" +c_compiler +"'")
 	print_msg("Setting cxx_compiler override to '" +cxx_compiler +"'")
+
+if platform == "linux" and no_cache:
+	from third_party import nocache
+	nocache.main()
 
 if update:
 	os.chdir(root)

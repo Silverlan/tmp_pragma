@@ -25,6 +25,9 @@ set(CMAKE_C_USE_RESPONSE_FILE_FOR_LIBRARIES 1)
 set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_LIBRARIES 1)
 
 option(PRAGMA_IGNORE_WARNINGS "Ignore warnings and configure anyway?" OFF)
+if(UNIX)
+    option(PRAGMA_NOCACHE "Use nocache to disable cache for cache-heavy build operations. You can try enabling this if you run into memory issues during configuration." OFF)
+endif()
 
 if(NOT PRAGMA_IGNORE_WARNINGS)
     if(CMAKE_GENERATOR MATCHES "Visual Studio.*")
