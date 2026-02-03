@@ -4,7 +4,7 @@ def main():
 	build_config_tp = config.build_config_tp
 	deps_dir = config.deps_dir
 	generator = config.generator
-    build_tools_dir = config.build_tools_dir
+	build_tools_dir = config.build_tools_dir
 	chdir_mkdir(build_tools_dir)
 	
 	# Download
@@ -23,10 +23,10 @@ def main():
 
 		# Build
 		print_msg("Building nocache...")
-        subprocess.run(["make"],check=True)
+		subprocess.run(["make"],check=True)
 
-    shutil.move(str(Path(nocache_root) / "nocache"), str(Path(build_tools_dir) / "nocache/nocache"))
-    
+	shutil.move(str(Path(nocache_root) / "nocache"), str(Path(build_tools_dir) / "nocache/nocache"))
+	
 	return {
 		"buildDir": nocache_root
 	}
