@@ -272,7 +272,10 @@ if not check_cmake((4, 2, 0)):
 os.chdir(root)
 if build_all == False:
 	subprocess.run([config.cmake_path, "-DPRAGMA_DEPS_DIR=" +config.prebuilt_bin_dir +"", "-DTOOLSET=" +toolset, "-P", "cmake/fetch_deps.cmake"],check=True)
-subprocess.run([config.cmake_path, "-DPRAGMA_BUILD_TOOLS_DIR=" +config.build_tools_dir, "-DPRAGMA_DEPS_DIR=" +config.prebuilt_bin_dir, "-P", "cmake/fetch_clang.cmake"],check=True)
+clang_cmake_args = ["-DPRAGMA_BUILD_TOOLS_DIR=" +config.build_tools_dir, "-DPRAGMA_DEPS_DIR=" +config.prebuilt_bin_dir]
+if platform == "linux" and no_cache:
+	clang_cmake_args.append("-DPRAGMA_NOCACHE=ON")
+subprocess.run([config.cmake_path] +clang_cmake_args +["-P", "cmake/fetch_clang.cmake"],check=True)
 
 import shutil
 import subprocess
