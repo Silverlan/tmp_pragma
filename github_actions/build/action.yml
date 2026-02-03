@@ -58,7 +58,7 @@ runs:
       shell: bash
       working-directory: 'pragma'
       run: |
-        python build_scripts/build.py --no-confirm --verbose --build-config "${{inputs.build-config}}" ${{inputs.build-args}}
+        python build_scripts/build.py --no-confirm --no-cache --verbose --build-config "${{inputs.build-config}}" ${{inputs.build-args}}
         
     - name: Build Pragma
       if: runner.os == 'Windows'
