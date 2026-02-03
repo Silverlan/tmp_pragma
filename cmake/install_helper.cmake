@@ -64,12 +64,10 @@ function(pr_http_extract url dest_dir)
         set(tmp_dir "${dest_dir}_tmp")
         file(REMOVE_RECURSE "${tmp_dir}")
         if(NOT PRAGMA_NOCACHE)
-            message("Not Using nocache...")
             file(ARCHIVE_EXTRACT INPUT "${zip_path}" DESTINATION "${tmp_dir}")
         else()
             get_filename_component(ABS_TMP_DIR "${tmp_dir}" ABSOLUTE)
             file(MAKE_DIRECTORY "${ABS_TMP_DIR}")
-            message("Using nocache...")
             execute_process(
                 COMMAND "${PRAGMA_BUILD_TOOLS_DIR}/nocache/nocache" tar -xf "${zip_path}"
                 WORKING_DIRECTORY "${tmp_dir}"
@@ -94,12 +92,10 @@ function(pr_http_extract url dest_dir)
     else()
         file(MAKE_DIRECTORY "${dest_dir}")
         if(NOT PRAGMA_NOCACHE)
-            message("Not Using nocache...")
             file(ARCHIVE_EXTRACT INPUT "${zip_path}" DESTINATION "${dest_dir}")
         else()
             get_filename_component(ABS_DEST_DIR "${dest_dir}" ABSOLUTE)
             file(MAKE_DIRECTORY "${ABS_DEST_DIR}")
-            message("Using nocache...")
             execute_process(
                 COMMAND "${PRAGMA_BUILD_TOOLS_DIR}/nocache/nocache" tar -xf "${zip_path}"
                 WORKING_DIRECTORY "${dest_dir}"
