@@ -63,7 +63,17 @@ function(pr_http_extract url dest_dir)
     if(ARG_STRIP_TOP_DIR)
         set(tmp_dir "${dest_dir}_tmp")
         file(REMOVE_RECURSE "${tmp_dir}")
-        file(ARCHIVE_EXTRACT INPUT "${zip_path}" DESTINATION "${tmp_dir}")
+        #file(ARCHIVE_EXTRACT INPUT "${zip_path}" DESTINATION "${tmp_dir}")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${tmp_dir}"
+            COMMAND ${CMAKE_COMMAND} -E tar xf "${zip_path}"
+            WORKING_DIRECTORY "${tmp_dir}"
+            RESULT_VARIABLE tar_res
+        )
+
+        if(NOT tar_res EQUAL 0)
+            message(FATAL_ERROR "Extraction failed with error: ${tar_res}")
+        endif()
         
         # Find the single top-level directory
         file(GLOB subdirs RELATIVE "${tmp_dir}" "${tmp_dir}/*")
@@ -77,7 +87,13 @@ function(pr_http_extract url dest_dir)
         file(REMOVE_RECURSE "${tmp_dir}")
     else()
         file(MAKE_DIRECTORY "${dest_dir}")
-        file(ARCHIVE_EXTRACT INPUT "${zip_path}" DESTINATION "${dest_dir}")
+        #file(ARCHIVE_EXTRACT INPUT "${zip_path}" DESTINATION "${dest_dir}")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${dest_dir}"
+            COMMAND ${CMAKE_COMMAND} -E tar xf "${zip_path}"
+            WORKING_DIRECTORY "${dest_dir}"
+            RESULT_VARIABLE tar_res
+        )
     endif()
 endfunction()
 
