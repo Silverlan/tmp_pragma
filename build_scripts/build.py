@@ -303,9 +303,6 @@ if platform == "linux":
 				"freetype2"
 			]
 
-			if(no_cache):
-				packages += ["gcc-c++", "make"]
-
 			# glfw
 			packages += [
 				"wayland",
