@@ -261,6 +261,10 @@ def fetch_cmake():
 		cmake_exe = "cmake"
 	config.cmake_path = str(Path(config.build_tools_dir) / "cmake" / "bin" / cmake_exe)
 
+if platform == "linux" and no_cache:
+	from third_party import nocache
+	nocache.main()
+
 # At least CMake 4.2.0 is needed, which is still very new and not available in the package managers of
 # most distros yet. If the detected CMake version is too old (or none was found), we'll download it here.
 use_custom_cmake = False
@@ -343,10 +347,6 @@ elif platform == "linux" and (c_compiler == "clang-22" or c_compiler == "clang++
 		cxx_compiler = str(clang_staging_path / "bin/clang++")
 	print_msg("Setting c_compiler override to '" +c_compiler +"'")
 	print_msg("Setting cxx_compiler override to '" +cxx_compiler +"'")
-
-if platform == "linux" and no_cache:
-	from third_party import nocache
-	nocache.main()
 
 if update:
 	os.chdir(root)

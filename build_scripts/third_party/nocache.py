@@ -4,10 +4,11 @@ def main():
 	build_config_tp = config.build_config_tp
 	deps_dir = config.deps_dir
 	generator = config.generator
-	chdir_mkdir(deps_dir)
+    build_tools_dir = config.build_tools_dir
+	chdir_mkdir(build_tools_dir)
 	
 	# Download
-	os.chdir(deps_dir)
+	os.chdir(build_tools_dir)
 	commit_sha = "7d5ebf5705ba31baed06f768ccd9d3030300b42b" # v1.2
 	nocache_root = os.getcwd() +"/nocache"
 	if not check_repository_commit(nocache_root, commit_sha, "nocache"): 
@@ -24,7 +25,7 @@ def main():
 		print_msg("Building nocache...")
         subprocess.run(["make"],check=True)
 
-    shutil.move(str(Path(nocache_root) / "nocache"), str(Path(get_library_bin_dir("bin")) / "nocache"))
+    shutil.move(str(Path(nocache_root) / "nocache"), str(Path(build_tools_dir) / "nocache/nocache"))
     
 	return {
 		"buildDir": nocache_root

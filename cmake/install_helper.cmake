@@ -69,7 +69,7 @@ function(pr_http_extract url dest_dir)
             get_filename_component(ABS_TMP_DIR "${tmp_dir}" ABSOLUTE)
             file(MAKE_DIRECTORY "${ABS_TMP_DIR}")
             execute_process(
-                COMMAND "${PRAGMA_DEPS_DIR}/nocache/nocache" tar -xf "${zip_path}"
+                COMMAND "${PRAGMA_BUILD_TOOLS_DIR}/nocache/nocache" tar -xf "${zip_path}"
                 WORKING_DIRECTORY "${tmp_dir}"
                 RESULT_VARIABLE tar_res
             )
@@ -97,7 +97,7 @@ function(pr_http_extract url dest_dir)
             get_filename_component(ABS_DEST_DIR "${dest_dir}" ABSOLUTE)
             file(MAKE_DIRECTORY "${ABS_DEST_DIR}")
             execute_process(
-                COMMAND "${PRAGMA_DEPS_DIR}/nocache/nocache" tar -xf "${zip_path}"
+                COMMAND "${PRAGMA_BUILD_TOOLS_DIR}/nocache/nocache" tar -xf "${zip_path}"
                 WORKING_DIRECTORY "${dest_dir}"
                 RESULT_VARIABLE tar_res
             )
