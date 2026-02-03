@@ -182,6 +182,7 @@ config.with_swiftshader = with_swiftshader
 if platform == "linux":
 	config.no_sudo = no_sudo
 	config.no_confirm = no_confirm
+	config.no_cache = no_cache
 config.generator = generator
 
 print("generator: " +generator)
@@ -207,6 +208,7 @@ print("install_directory: " +install_directory)
 if platform == "linux":
 	print("no_sudo: " +str(no_sudo))
 	print("no_confirm: " +str(no_confirm))
+	print("no_cache: " +str(no_cache))
 	print("debug: " +str(with_debug))
 print("cmake_args: " +', '.join(additional_cmake_args))
 print("cmake_flags: " +', '.join(additional_cmake_flags))
