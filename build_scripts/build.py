@@ -220,134 +220,6 @@ mkpath(tools)
 
 config.prebuilt_bin_dir = deps_dir +"/" +config.deps_staging_dir
 
-def check_cmake(min_version):
-	cmake_path = shutil.which("cmake")
-	if not cmake_path:
-		# CMake not found
-		return False
-
-	try:
-		result = subprocess.run(
-			[cmake_path, "--version"], 
-			capture_output=True, 
-			text=True, 
-			check=True
-		)
-		
-		match = re.search(r"(\d+\.\d+\.\d+)", result.stdout)
-		if not match:
-			# Failed to parse version
-			return False
-
-		version_str = match.group(1)
-		current_version = tuple(map(int, version_str.split(".")))
-
-		if current_version >= min_version:
-			return True
-		else:
-			# CMake is too old
-			return False
-
-	except (subprocess.CalledProcessError, OSError) as e:
-		# CMake execution failed
-		return False
-
-def fetch_cmake():
-	from third_party import cmake
-	cmake.main()
-	if platform == "win32":
-		cmake_exe = "cmake.exe"
-	else:
-		cmake_exe = "cmake"
-	config.cmake_path = str(Path(config.build_tools_dir) / "cmake" / "bin" / cmake_exe)
-
-if platform == "linux" and no_cache:
-	from third_party import nocache
-	nocache.main()
-
-# At least CMake 4.2.0 is needed, which is still very new and not available in the package managers of
-# most distros yet. If the detected CMake version is too old (or none was found), we'll download it here.
-use_custom_cmake = False
-if not check_cmake((4, 2, 0)):
-	use_custom_cmake = True
-	fetch_cmake()
-
-# Use prebuilt binaries if --build-all is not set
-os.chdir(root)
-if build_all == False:
-	subprocess.run([config.cmake_path, "-DPRAGMA_DEPS_DIR=" +config.prebuilt_bin_dir +"", "-DTOOLSET=" +toolset, "-P", "cmake/fetch_deps.cmake"],check=True)
-clang_cmake_args = ["-DPRAGMA_BUILD_TOOLS_DIR=" +config.build_tools_dir, "-DPRAGMA_DEPS_DIR=" +config.prebuilt_bin_dir]
-if platform == "linux" and no_cache:
-	clang_cmake_args.append("-DPRAGMA_NOCACHE=ON")
-subprocess.run([config.cmake_path] +clang_cmake_args +["-P", "cmake/fetch_clang.cmake"],check=True)
-
-import shutil
-import subprocess
-import re
-import sys
-
-if platform == "win32":
-	load_vs_env(deps_dir)
-	if toolset == "msvc":
-		print_warning(f"Visual Studio toolset is currently not recommended and may not work. If you run into issues, try using the clang toolset instead.")
-	elif toolset == "clang":
-		# We need an up-to-date version of clang, so we'll use our shipped version for now.
-		#from third_party import clang
-		#clang.main()
-
-		clang_dir = str(Path(config.build_tools_dir) / "clang/bin/")
-		config.toolsetArgs = [
-			"-DCMAKE_C_COMPILER=" +str(Path(clang_dir) / "clang.exe"),
-			"-DCMAKE_CXX_COMPILER=" +str(Path(clang_dir) / "clang++.exe"),
-			"-DCMAKE_MAKE_PROGRAM=ninja.exe"
-		]
-		config.toolsetCFlags = ["-fexceptions", "-fcxx-exceptions", "--target=x86_64-pc-windows-msvc"]
-
-		# Due to "import std;" support still being experimental in CMake, we have to use a custom, patched
-		# version of CMake to build Pragma with clang on Windows.
-		if not use_custom_cmake:
-			use_custom_cmake = True
-			fetch_cmake()
-	elif toolset == "clang-cl":
-		clang_dir = str(Path(config.build_tools_dir) / "clang/bin")
-		
-		config.toolsetArgs = [
-			"-DCMAKE_C_COMPILER=" +clang_dir +"/clang-cl.exe",
-			"-DCMAKE_CXX_COMPILER=" +clang_dir +"/clang-cl.exe",
-			"-DCMAKE_CXX_COMPILER_AR=" +clang_dir +"/llvm-ar.exe",
-			"-DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS=" +clang_dir +"/clang-scan-deps.exe",
-			"-DCMAKE_CXX_COMPILER_RANLIB=" +clang_dir +"/llvm-ranlib.exe"
-		]
-		config.toolsetCFlags = ["-Wno-error", "-Wno-unused-command-line-argument", "-Wno-enum-constexpr-conversion", "-fexceptions", "-fcxx-exceptions"]
-		print_warning(f"Toolset {toolset} for platform {platform} is currently not supported!")
-		if not ignore_warnings:
-			sys.exit(1)
-		else:
-			print_msg("--ignore-warnings has been enabled, continuing...")
-	if generator != "Ninja Multi-Config":
-		if not deps_only:
-			print_warning(f"Generator {generator} for platform {platform} is currently not supported! Please use \"Ninja Multi-Config\".")
-			print_msg("If you want to try using this generator anyway, follow these steps:")
-			print_msg("1) Open CMakePresets.json in the root Pragma directory and remove the '\"hidden\": true' fields from the \"config-windows-msvc-*\" and \"build-windows-msvc-*\" presets.")
-			print_msg("2) Re-run this script with --ignore-warnings")
-			if not ignore_warnings:
-				sys.exit(1)
-			else:
-				print_msg("--ignore-warnings has been enabled, continuing...")
-elif platform == "linux" and (c_compiler == "clang-22" or c_compiler == "clang++-22"):
-	# Due to a compiler bug with C++20 Modules in clang, we need the
-	# very latest version of clang, which is not available in package managers yet.
-	# We'll use our own prebuilt version for now.
-	# from third_party import clang
-	# clang.main()
-	clang_staging_path = Path(config.build_tools_dir) / "clang/"
-	if c_compiler == "clang-22":
-		c_compiler = str(clang_staging_path / "bin/clang")
-	if cxx_compiler == "clang++-22":
-		cxx_compiler = str(clang_staging_path / "bin/clang++")
-	print_msg("Setting c_compiler override to '" +c_compiler +"'")
-	print_msg("Setting cxx_compiler override to '" +cxx_compiler +"'")
-
 if update:
 	os.chdir(root)
 
@@ -361,92 +233,6 @@ if update:
 	print("argv: ",argv)
 	os.execv(sys.executable, ['python'] +argv)
 	sys.exit(0)
-
-if platform == "linux":
-	os.environ["CC"] = c_compiler
-	os.environ["CXX"] = cxx_compiler
-
-def execscript(filepath):
-	global generator
-	global config
-	global build_config
-	global build_directory
-	global deps_directory
-	global install_directory
-	global scripts_dir
-	global verbose
-	global root
-	global build_dir
-	global deps_dir
-	global install_dir
-	global tools
-	global cmake_args
-	global with_swiftshader
-	global with_lua_debugger
-
-	curDir = os.getcwd()
-
-	g = {}
-	l = {
-		"generator": generator,
-		"toolsetArgs": config.toolsetArgs,
-		"toolsetCFlags": config.toolsetCFlags,
-		"build_config": build_config,
-		"build_directory": build_directory,
-		"deps_directory": deps_directory,
-		"install_directory": install_directory,
-		"scripts_dir": scripts_dir,
-		"verbose": verbose,
-
-		"root": root,
-		"build_dir": build_dir,
-		"deps_dir": deps_dir,
-		"install_dir": install_dir,
-		"tools": tools,
-
-		"build_all": build_all,
-
-		"normalize_path": normalize_path,
-		"mkpath": mkpath,
-		"print_msg": print_msg,
-		"print_warning": print_warning,
-		"git_clone": git_clone,
-		"cmake_configure": cmake_configure,
-		"cmake_configure_def_toolset": cmake_configure_def_toolset,
-		"cmake_build": cmake_build,
-		"mkdir": mkdir,
-		"http_download": http_download,
-		"http_extract": http_extract,
-		"cp": cp,
-		"cp_dir": cp_dir,
-		"replace_text_in_file": replace_text_in_file,
-		"extract": extract,
-		"execfile": execfile,
-		"execscript": execscript,
-		"str2bool": str2bool,
-		"install_prebuilt_binaries": install_prebuilt_binaries,
-		"reset_to_commit": reset_to_commit,
-		"check_repository_commit": check_repository_commit,
-		"check_content_version": check_content_version,
-		"update_content_version": update_content_version,
-		"run_cmake_script": run_cmake_script,
-		
-		"cmake_args": cmake_args,
-
-		"with_swiftshader": with_swiftshader,
-		"with_lua_debugger": with_lua_debugger,
-		"build_swiftshader": build_swiftshader
-	}
-	if platform == "linux":
-		l["c_compiler"] = c_compiler
-		l["cxx_compiler"] = cxx_compiler
-		l["no_confirm"] = no_confirm
-		l["no_sudo"] = no_sudo
-
-	execfile(filepath,l,l)
-	cmake_args = l["cmake_args"]
-
-	os.chdir(curDir)
 
 ########## System packages ##########
 if platform == "linux":
@@ -516,6 +302,9 @@ if platform == "linux":
 				"base-devel",
 				"freetype2"
 			]
+
+			if(no_cache):
+				packages += ["gcc-c++", "make"]
 
 			# glfw
 			packages += [
@@ -693,6 +482,220 @@ if platform == "linux":
 				]
 			commands.append("apt install -y " +" ".join(packages))
 		install_system_packages(commands, no_confirm)
+
+def check_cmake(min_version):
+	cmake_path = shutil.which("cmake")
+	if not cmake_path:
+		# CMake not found
+		return False
+
+	try:
+		result = subprocess.run(
+			[cmake_path, "--version"], 
+			capture_output=True, 
+			text=True, 
+			check=True
+		)
+		
+		match = re.search(r"(\d+\.\d+\.\d+)", result.stdout)
+		if not match:
+			# Failed to parse version
+			return False
+
+		version_str = match.group(1)
+		current_version = tuple(map(int, version_str.split(".")))
+
+		if current_version >= min_version:
+			return True
+		else:
+			# CMake is too old
+			return False
+
+	except (subprocess.CalledProcessError, OSError) as e:
+		# CMake execution failed
+		return False
+
+def fetch_cmake():
+	from third_party import cmake
+	cmake.main()
+	if platform == "win32":
+		cmake_exe = "cmake.exe"
+	else:
+		cmake_exe = "cmake"
+	config.cmake_path = str(Path(config.build_tools_dir) / "cmake" / "bin" / cmake_exe)
+
+if platform == "linux" and no_cache:
+	from third_party import nocache
+	nocache.main()
+
+# At least CMake 4.2.0 is needed, which is still very new and not available in the package managers of
+# most distros yet. If the detected CMake version is too old (or none was found), we'll download it here.
+use_custom_cmake = False
+if not check_cmake((4, 2, 0)):
+	use_custom_cmake = True
+	fetch_cmake()
+
+# Use prebuilt binaries if --build-all is not set
+os.chdir(root)
+if build_all == False:
+	subprocess.run([config.cmake_path, "-DPRAGMA_DEPS_DIR=" +config.prebuilt_bin_dir +"", "-DTOOLSET=" +toolset, "-P", "cmake/fetch_deps.cmake"],check=True)
+clang_cmake_args = ["-DPRAGMA_BUILD_TOOLS_DIR=" +config.build_tools_dir, "-DPRAGMA_DEPS_DIR=" +config.prebuilt_bin_dir]
+if platform == "linux" and no_cache:
+	clang_cmake_args.append("-DPRAGMA_NOCACHE=ON")
+subprocess.run([config.cmake_path] +clang_cmake_args +["-P", "cmake/fetch_clang.cmake"],check=True)
+
+import shutil
+import subprocess
+import re
+import sys
+
+if platform == "win32":
+	load_vs_env(deps_dir)
+	if toolset == "msvc":
+		print_warning(f"Visual Studio toolset is currently not recommended and may not work. If you run into issues, try using the clang toolset instead.")
+	elif toolset == "clang":
+		# We need an up-to-date version of clang, so we'll use our shipped version for now.
+		#from third_party import clang
+		#clang.main()
+
+		clang_dir = str(Path(config.build_tools_dir) / "clang/bin/")
+		config.toolsetArgs = [
+			"-DCMAKE_C_COMPILER=" +str(Path(clang_dir) / "clang.exe"),
+			"-DCMAKE_CXX_COMPILER=" +str(Path(clang_dir) / "clang++.exe"),
+			"-DCMAKE_MAKE_PROGRAM=ninja.exe"
+		]
+		config.toolsetCFlags = ["-fexceptions", "-fcxx-exceptions", "--target=x86_64-pc-windows-msvc"]
+
+		# Due to "import std;" support still being experimental in CMake, we have to use a custom, patched
+		# version of CMake to build Pragma with clang on Windows.
+		if not use_custom_cmake:
+			use_custom_cmake = True
+			fetch_cmake()
+	elif toolset == "clang-cl":
+		clang_dir = str(Path(config.build_tools_dir) / "clang/bin")
+		
+		config.toolsetArgs = [
+			"-DCMAKE_C_COMPILER=" +clang_dir +"/clang-cl.exe",
+			"-DCMAKE_CXX_COMPILER=" +clang_dir +"/clang-cl.exe",
+			"-DCMAKE_CXX_COMPILER_AR=" +clang_dir +"/llvm-ar.exe",
+			"-DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS=" +clang_dir +"/clang-scan-deps.exe",
+			"-DCMAKE_CXX_COMPILER_RANLIB=" +clang_dir +"/llvm-ranlib.exe"
+		]
+		config.toolsetCFlags = ["-Wno-error", "-Wno-unused-command-line-argument", "-Wno-enum-constexpr-conversion", "-fexceptions", "-fcxx-exceptions"]
+		print_warning(f"Toolset {toolset} for platform {platform} is currently not supported!")
+		if not ignore_warnings:
+			sys.exit(1)
+		else:
+			print_msg("--ignore-warnings has been enabled, continuing...")
+	if generator != "Ninja Multi-Config":
+		if not deps_only:
+			print_warning(f"Generator {generator} for platform {platform} is currently not supported! Please use \"Ninja Multi-Config\".")
+			print_msg("If you want to try using this generator anyway, follow these steps:")
+			print_msg("1) Open CMakePresets.json in the root Pragma directory and remove the '\"hidden\": true' fields from the \"config-windows-msvc-*\" and \"build-windows-msvc-*\" presets.")
+			print_msg("2) Re-run this script with --ignore-warnings")
+			if not ignore_warnings:
+				sys.exit(1)
+			else:
+				print_msg("--ignore-warnings has been enabled, continuing...")
+elif platform == "linux" and (c_compiler == "clang-22" or c_compiler == "clang++-22"):
+	# Due to a compiler bug with C++20 Modules in clang, we need the
+	# very latest version of clang, which is not available in package managers yet.
+	# We'll use our own prebuilt version for now.
+	# from third_party import clang
+	# clang.main()
+	clang_staging_path = Path(config.build_tools_dir) / "clang/"
+	if c_compiler == "clang-22":
+		c_compiler = str(clang_staging_path / "bin/clang")
+	if cxx_compiler == "clang++-22":
+		cxx_compiler = str(clang_staging_path / "bin/clang++")
+	print_msg("Setting c_compiler override to '" +c_compiler +"'")
+	print_msg("Setting cxx_compiler override to '" +cxx_compiler +"'")
+
+if platform == "linux":
+	os.environ["CC"] = c_compiler
+	os.environ["CXX"] = cxx_compiler
+
+def execscript(filepath):
+	global generator
+	global config
+	global build_config
+	global build_directory
+	global deps_directory
+	global install_directory
+	global scripts_dir
+	global verbose
+	global root
+	global build_dir
+	global deps_dir
+	global install_dir
+	global tools
+	global cmake_args
+	global with_swiftshader
+	global with_lua_debugger
+
+	curDir = os.getcwd()
+
+	g = {}
+	l = {
+		"generator": generator,
+		"toolsetArgs": config.toolsetArgs,
+		"toolsetCFlags": config.toolsetCFlags,
+		"build_config": build_config,
+		"build_directory": build_directory,
+		"deps_directory": deps_directory,
+		"install_directory": install_directory,
+		"scripts_dir": scripts_dir,
+		"verbose": verbose,
+
+		"root": root,
+		"build_dir": build_dir,
+		"deps_dir": deps_dir,
+		"install_dir": install_dir,
+		"tools": tools,
+
+		"build_all": build_all,
+
+		"normalize_path": normalize_path,
+		"mkpath": mkpath,
+		"print_msg": print_msg,
+		"print_warning": print_warning,
+		"git_clone": git_clone,
+		"cmake_configure": cmake_configure,
+		"cmake_configure_def_toolset": cmake_configure_def_toolset,
+		"cmake_build": cmake_build,
+		"mkdir": mkdir,
+		"http_download": http_download,
+		"http_extract": http_extract,
+		"cp": cp,
+		"cp_dir": cp_dir,
+		"replace_text_in_file": replace_text_in_file,
+		"extract": extract,
+		"execfile": execfile,
+		"execscript": execscript,
+		"str2bool": str2bool,
+		"install_prebuilt_binaries": install_prebuilt_binaries,
+		"reset_to_commit": reset_to_commit,
+		"check_repository_commit": check_repository_commit,
+		"check_content_version": check_content_version,
+		"update_content_version": update_content_version,
+		"run_cmake_script": run_cmake_script,
+		
+		"cmake_args": cmake_args,
+
+		"with_swiftshader": with_swiftshader,
+		"with_lua_debugger": with_lua_debugger,
+		"build_swiftshader": build_swiftshader
+	}
+	if platform == "linux":
+		l["c_compiler"] = c_compiler
+		l["cxx_compiler"] = cxx_compiler
+		l["no_confirm"] = no_confirm
+		l["no_sudo"] = no_sudo
+
+	execfile(filepath,l,l)
+	cmake_args = l["cmake_args"]
+
+	os.chdir(curDir)
 
 module_list = []
 cmake_args = config.cmake_args
